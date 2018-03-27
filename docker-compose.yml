@@ -1,0 +1,9 @@
+version: "3"
+services:
+  go_exercises:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: "go_exercises"
+    restart: on-failure
+    

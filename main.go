@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"log"
 	"time"
 
 	"github.com/pierre-emmanuelJ/go-exercises/polls"
@@ -15,9 +16,19 @@ func main() {
 
 	flag.Parse()
 
+	// if *partition == "" && *iNetwork == "" {
+	// 	println(" -i: interval in seconds at which to poll\n",
+	// 		"-p: partition to poll\n",
+	// 		"-n: network interface to poll")
+	// 	return
+	// }
+
 	for true {
 		time.Sleep(time.Duration(*interval) * time.Second)
-		polls.Pollsinfos(*partition, *iNetwork)
+		err := polls.Pollsinfos(*partition, *iNetwork)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 }

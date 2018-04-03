@@ -23,9 +23,10 @@ func main() {
 	// 	return
 	// }
 
+	cpuInfos := &polls.CpuInfos{}
 	for true {
 		time.Sleep(time.Duration(*interval) * time.Second)
-		err := polls.Pollsinfos(*partition, *iNetwork)
+		err := polls.Pollsinfos(*partition, *iNetwork, cpuInfos)
 		if err != nil {
 			log.Fatal(err)
 		}

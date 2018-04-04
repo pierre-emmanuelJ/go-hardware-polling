@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/pierre-emmanuelJ/go-exercises/cpu"
 	"github.com/pierre-emmanuelJ/go-exercises/polls"
 )
 
@@ -23,7 +24,7 @@ func main() {
 	// 	return
 	// }
 
-	cpuInfos := &polls.CpuInfos{}
+	cpuInfos := &cpu.CPUInfos{}
 	for true {
 		time.Sleep(time.Duration(*interval) * time.Second)
 		err := polls.Pollsinfos(*partition, *iNetwork, cpuInfos)

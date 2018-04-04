@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pierre-emmanuelJ/go-exercises/cpu"
 )
 
 type Metric struct {
@@ -20,12 +22,7 @@ type Metrics struct {
 	Metrics   []*Metric `json:"metrics"`
 }
 
-type CpuInfos struct {
-	previousIdleTime  int
-	previousTotalTime int
-}
-
-func Pollsinfos(partition, iNetwork string, cpuInfos *CpuInfos) error {
+func Pollsinfos(partition, iNetwork string, cpuInfos *cpu.CPUInfos) error {
 
 	av, err := getLoadAv()
 	if err != nil {
@@ -76,7 +73,7 @@ func getLoadAv() (*Metric, error) {
 	return &Metric{Name: "Load average", Metric: scanner.Text()}, nil
 }
 
-func getCPUPercentage(cpuInfos *CpuInfos) (*Metric, error) {
+func getCPUPercentage(cpuInfos *cpu.CPUInfos) (*Metric, error) {
 
 	file, err := os.Open("/proc/stat")
 	if err != nil {
@@ -92,61 +89,31 @@ func getCPUPercentage(cpuInfos *CpuInfos) (*Metric, error) {
 		return nil, nil
 	}
 
-	cpuTimes, err := getCPUTimes(scanner.Text())
+	cpuTimes, err := cpu.GetCPUTimes(scanner.Text())
 	if err != nil {
 		return nil, err
 	}
 
 	idleTime, totalTime := 0, 0
 
-	if err := getCPUIdleTimes(&idleTime, &totalTime, cpuTimes); err != nil {
+	if err := cpu.GetCPUIdleTimes(&idleTime, &totalTime, cpuTimes); err != nil {
 		return nil, err
 	}
 
 	println(idleTime, totalTime)
 	result := ""
-	idleTimeDelta := idleTime - cpuInfos.previousIdleTime
-	totalTimeDelta := totalTime - cpuInfos.previousTotalTime
+	idleTimeDelta := idleTime - cpuInfos.PreviousIdleTime
+	totalTimeDelta := totalTime - cpuInfos.PreviousTotalTime
 	utilization := 100.0 * (1.0 - idleTimeDelta/totalTimeDelta)
 
 	result += strconv.FormatFloat(float64(utilization), 'E', -1, 64)
 	result += " %"
 
 	println(idleTime, totalTime)
-	cpuInfos.previousIdleTime = idleTime
-	cpuInfos.previousTotalTime = totalTime
+	cpuInfos.PreviousIdleTime = idleTime
+	cpuInfos.PreviousTotalTime = totalTime
 
 	return &Metric{Name: "cpu user", Metric: result}, nil
-}
-
-func getCPUIdleTimes(idleTime, totalTime *int, cpuTimes []int) error {
-	if len(cpuTimes) < 4 {
-		return nil
-	}
-	*idleTime = cpuTimes[3]
-
-	for _, i := range cpuTimes {
-		*totalTime += i
-	}
-	return nil
-}
-
-func getCPUTimes(s string) ([]int, error) {
-
-	times := strings.Split(s, " ")
-	var res []int
-	for _, time := range times {
-
-		if time == "" || time == "cpu" {
-			continue
-		}
-		timeNum, err := strconv.Atoi(time)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, timeNum)
-	}
-	return res, nil
 }
 
 func getNetStat() (*Metric, error) {

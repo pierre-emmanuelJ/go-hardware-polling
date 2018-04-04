@@ -5,18 +5,27 @@ import (
 	"strings"
 )
 
+const idle = 3
+const iowait = 4
+const minValidCPUStats = 5
+const endCPUList = 8
+
 type CPUInfos struct {
 	PreviousIdleTime  int
 	PreviousTotalTime int
 }
 
 func GetCPUIdleTimes(idleTime, totalTime *int, cpuTimes []int) error {
-	if len(cpuTimes) < 4 {
+	if len(cpuTimes) < minValidCPUStats {
 		return nil
 	}
-	*idleTime = cpuTimes[3]
+	*idleTime = cpuTimes[idle]
 
-	for _, i := range cpuTimes {
+	for index, i := range cpuTimes {
+
+		if index >= endCPUList {
+			break
+		}
 		*totalTime += i
 	}
 	return nil

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -100,16 +99,12 @@ func getCPUPercentage(cpuInfos *cpu.CPUInfos) (*Metric, error) {
 		return nil, err
 	}
 
-	println(idleTime, totalTime)
-	result := ""
 	idleTimeDelta := idleTime - cpuInfos.PreviousIdleTime
 	totalTimeDelta := totalTime - cpuInfos.PreviousTotalTime
-	utilization := 100.0 * (1.0 - idleTimeDelta/totalTimeDelta)
+	utilization := (1000.0*(totalTimeDelta-idleTimeDelta)/totalTimeDelta + 5) / 10
 
-	result += strconv.FormatFloat(float64(utilization), 'E', -1, 64)
-	result += " %"
+	result := fmt.Sprintf("%.2f", float64(utilization))
 
-	println(idleTime, totalTime)
 	cpuInfos.PreviousIdleTime = idleTime
 	cpuInfos.PreviousTotalTime = totalTime
 

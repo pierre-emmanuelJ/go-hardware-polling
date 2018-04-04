@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -134,8 +133,7 @@ func getMemUsage() (*Metric, error) {
 		return nil, err
 	}
 
-	memUtilization := (memTotal / (memTotal - memAvailable) * 100)
+	memUtilization := 100.0 * memAvailable / memTotal
 
-	return &Metric{Name: "Memory utilization", Metric: strconv.FormatInt(int64(memUtilization), 10)}, nil
-
+	return &Metric{Name: "Memory utilization", Metric: fmt.Sprintf("%.2f", float64(memUtilization))}, nil
 }

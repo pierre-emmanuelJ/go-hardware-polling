@@ -1,6 +1,7 @@
 package cpu
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -17,7 +18,7 @@ type CPUInfos struct {
 
 func GetCPUIdleTimes(idleTime, totalTime *int, cpuTimes []int) error {
 	if len(cpuTimes) < minValidCPUStats {
-		return nil
+		return fmt.Errorf("Invalide cpu line missing some stats")
 	}
 	*idleTime = cpuTimes[idle]
 

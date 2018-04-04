@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/pierre-emmanuelJ/go-exercises/cpu"
+	"github.com/pierre-emmanuelJ/go-exercises/memory"
 )
 
 type Metric struct {
@@ -85,7 +87,7 @@ func getCPUPercentage(cpuInfos *cpu.CPUInfos) (*Metric, error) {
 		if strings.Contains(scanner.Text(), "cpu") {
 			break
 		}
-		return nil, nil
+		return nil, fmt.Errorf("No cpu infos in this file or invalide file")
 	}
 
 	cpuTimes, err := cpu.GetCPUTimes(scanner.Text())
@@ -99,8 +101,8 @@ func getCPUPercentage(cpuInfos *cpu.CPUInfos) (*Metric, error) {
 		return nil, err
 	}
 
-	idleTimeDelta := idleTime - cpuInfos.PreviousIdleTime
-	totalTimeDelta := totalTime - cpuInfos.PreviousTotalTime
+	idleTimeDelta := 1.0 * (idleTime - cpuInfos.PreviousIdleTime)
+	totalTimeDelta := 1.0 * (totalTime - cpuInfos.PreviousTotalTime)
 	utilization := (1000.0*(totalTimeDelta-idleTimeDelta)/totalTimeDelta + 5) / 10
 
 	result := fmt.Sprintf("%.2f", float64(utilization))
@@ -108,7 +110,7 @@ func getCPUPercentage(cpuInfos *cpu.CPUInfos) (*Metric, error) {
 	cpuInfos.PreviousIdleTime = idleTime
 	cpuInfos.PreviousTotalTime = totalTime
 
-	return &Metric{Name: "cpu user", Metric: result}, nil
+	return &Metric{Name: "Cpu user", Metric: result}, nil
 }
 
 func getNetStat() (*Metric, error) {
@@ -122,6 +124,18 @@ func getDiskUsage() (*Metric, error) {
 }
 
 func getMemUsage() (*Metric, error) {
-	return &Metric{}, nil
+
+	memTotal, err := memory.GetMemoryInfoByKey("MemTotal")
+	if err != nil {
+		return nil, err
+	}
+	memAvailable, err := memory.GetMemoryInfoByKey("MemAvailable")
+	if err != nil {
+		return nil, err
+	}
+
+	memUtilization := (memTotal / (memTotal - memAvailable) * 100)
+
+	return &Metric{Name: "Memory utilization", Metric: strconv.FormatInt(int64(memUtilization), 10)}, nil
 
 }

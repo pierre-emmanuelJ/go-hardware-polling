@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func GetMemoryInfoByKey(key string) (int, error) {
+func GetMemoryInfoByKey(key string) (float64, error) {
 
 	memline, err := getMemLine(key)
 	if err != nil {
@@ -22,7 +22,7 @@ func GetMemoryInfoByKey(key string) (int, error) {
 		if err != nil {
 			continue
 		} else {
-			return value, nil
+			return float64(value), nil
 		}
 	}
 	return 0, fmt.Errorf("Value not found for key: %s", key)

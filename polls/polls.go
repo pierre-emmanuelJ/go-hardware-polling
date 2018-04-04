@@ -100,11 +100,13 @@ func getCPUPercentage(cpuInfos *cpu.CPUInfos) (*Metric, error) {
 		return nil, err
 	}
 
-	idleTimeDelta := 1.0 * (idleTime - cpuInfos.PreviousIdleTime)
-	totalTimeDelta := 1.0 * (totalTime - cpuInfos.PreviousTotalTime)
-	utilization := (1000.0*(totalTimeDelta-idleTimeDelta)/totalTimeDelta + 5) / 10
+	var utilization float64
 
-	result := fmt.Sprintf("%.2f", float64(utilization))
+	idleTimeDelta := float64(idleTime - cpuInfos.PreviousIdleTime)
+	totalTimeDelta := float64(totalTime - cpuInfos.PreviousTotalTime)
+	utilization = (1000*(totalTimeDelta-idleTimeDelta)/totalTimeDelta + 5) / 10
+
+	result := fmt.Sprintf("%.2f", utilization)
 
 	cpuInfos.PreviousIdleTime = idleTime
 	cpuInfos.PreviousTotalTime = totalTime
@@ -133,7 +135,9 @@ func getMemUsage() (*Metric, error) {
 		return nil, err
 	}
 
-	memUtilization := 100.0 * memAvailable / memTotal
+	memUtilization := memAvailable / memTotal * 100
 
-	return &Metric{Name: "Memory utilization", Metric: fmt.Sprintf("%.2f", float64(memUtilization))}, nil
+	memUtilization = 100 - memUtilization
+
+	return &Metric{Name: "Memory utilization", Metric: fmt.Sprintf("%.2f", memUtilization)}, nil
 }

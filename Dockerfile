@@ -9,4 +9,4 @@ FROM alpine:3.6
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 COPY --from=0  /go/src/github.com/pierre-emmanuelJ/go-exercises/exercises .
-CMD ["./exercises", "-i", "1", "-p", "tmpfs"]
+CMD ["./exercises", "-i", "1", "-p", "tmpfs", "-n", "eth0"]

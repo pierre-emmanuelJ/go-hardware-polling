@@ -1,7 +1,9 @@
 package cpu
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -16,11 +18,37 @@ type CPUInfos struct {
 	PreviousTotalTime int
 }
 
-func GetCPUIdleTimes(idleTime, totalTime *int, cpuTimes []int) error {
-	if len(cpuTimes) < minValidCPUStats {
-		//TODO implem Error
-		return fmt.Errorf("Invalide cpu line missing some stats")
+func GetCPULine() (string, error) {
+	file, err := os.Open("/proc/stat")
+	if err != nil {
+		return "", err
 	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		if line, isOk := getCPU(scanner.Text(), "cpu"); isOk {
+			return line, nil
+		}
+	}
+	return "", fmt.Errorf("No cpu infos in this file or invalide file")
+}
+
+func getCPU(s, key string) (string, bool) {
+
+	cpuInfos := strings.Split(s, " ")
+
+	if len(cpuInfos) < minValidCPUStats {
+		return "", false
+	}
+
+	if cpuInfos[0] == key {
+		return s, true
+	}
+	return "", false
+}
+
+func GetCPUIdleTimes(idleTime, totalTime *int, cpuTimes []int) error {
 	*idleTime = cpuTimes[idle]
 
 	for index, i := range cpuTimes {

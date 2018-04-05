@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 	"syscall"
 	"time"
 
@@ -91,22 +90,12 @@ func getLoadAv() (*Metric, error) {
 
 func getCPUPercentage(cpuInfos *cpu.CPUInfos) (*Metric, error) {
 
-	file, err := os.Open("/proc/stat")
+	cpuLine, err := cpu.GetCPULine()
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
-	scanner.Split(bufio.ScanLines)
-	for scanner.Scan() {
-		if strings.Contains(scanner.Text(), "cpu") {
-			break
-		}
-		//TODO implem Error
-		return nil, fmt.Errorf("No cpu infos in this file or invalide file")
-	}
 
-	cpuTimes, err := cpu.GetCPUTimes(scanner.Text())
+	cpuTimes, err := cpu.GetCPUTimes(cpuLine)
 	if err != nil {
 		return nil, err
 	}

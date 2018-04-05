@@ -17,13 +17,6 @@ func main() {
 
 	flag.Parse()
 
-	// if *partition == "" && *iNetwork == "" {
-	// 	println(" -i: interval in seconds at which to poll\n",
-	// 		"-p: partition to poll\n",
-	// 		"-n: network interface to poll")
-	// 	return
-	// }
-
 	cpuInfos := &cpu.CPUInfos{}
 	for true {
 		time.Sleep(time.Duration(*interval) * time.Second)

@@ -25,6 +25,7 @@ func GetMemoryInfoByKey(key string) (float64, error) {
 			return float64(value), nil
 		}
 	}
+	//TODO implem Error
 	return 0, fmt.Errorf("Value not found for key: %s", key)
 }
 
@@ -41,5 +42,6 @@ func getMemLine(key string) (string, error) {
 			return scanner.Text(), nil
 		}
 	}
+	//TODO implem Error
 	return "", fmt.Errorf("key '%s' not found in memory file or file not valid", key)
 }

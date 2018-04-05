@@ -18,6 +18,7 @@ type CPUInfos struct {
 
 func GetCPUIdleTimes(idleTime, totalTime *int, cpuTimes []int) error {
 	if len(cpuTimes) < minValidCPUStats {
+		//TODO implem Error
 		return fmt.Errorf("Invalide cpu line missing some stats")
 	}
 	*idleTime = cpuTimes[idle]

@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/pierre-emmanuelJ/go-exercises/cpu"
 	"github.com/pierre-emmanuelJ/go-exercises/memory"
+	part "github.com/pierre-emmanuelJ/go-exercises/partition"
 )
 
 type Metric struct {
@@ -39,7 +41,7 @@ func Pollsinfos(partition, iNetwork string, cpuInfos *cpu.CPUInfos) error {
 		return err
 	}
 
-	disk, err := getDiskUsage()
+	disk, err := getDiskUsage(partition)
 	if err != nil {
 		return err
 	}
@@ -86,6 +88,7 @@ func getCPUPercentage(cpuInfos *cpu.CPUInfos) (*Metric, error) {
 		if strings.Contains(scanner.Text(), "cpu") {
 			break
 		}
+		//TODO implem Error
 		return nil, fmt.Errorf("No cpu infos in this file or invalide file")
 	}
 
@@ -119,8 +122,24 @@ func getNetStat() (*Metric, error) {
 
 }
 
-func getDiskUsage() (*Metric, error) {
-	return &Metric{}, nil
+func getDiskUsage(partition string) (*Metric, error) {
+
+	partitionPath, err := part.GetPartitionMountPointPath(partition)
+	if err != nil {
+		return nil, err
+	}
+
+	statfs := &syscall.Statfs_t{}
+
+	if err := syscall.Statfs(partitionPath, statfs); err != nil {
+		return nil, err
+	}
+
+	ret := float64(statfs.Bavail) / float64(statfs.Blocks) * 100
+
+	ret = 100 - ret
+
+	return &Metric{Name: fmt.Sprintf("partition %s", partition), Metric: fmt.Sprintf("%.2f", ret)}, nil
 
 }
 

@@ -26,24 +26,36 @@ type Metrics struct {
 
 func Pollsinfos(partition, iNetwork string, cpuInfos *cpu.CPUInfos) error {
 
+	metrics := []*Metric{}
+
 	av, err := getLoadAv()
 	if err != nil {
 		return err
 	}
+
+	metrics = append(metrics, av)
 
 	cpu, err := getCPUPercentage(cpuInfos)
 	if err != nil {
 		return err
 	}
 
-	netStat, err := getNetStat()
-	if err != nil {
-		return err
+	metrics = append(metrics, cpu)
+
+	if iNetwork != "" {
+		netStat, err := getNetStat()
+		if err != nil {
+			return err
+		}
+		metrics = append(metrics, netStat)
 	}
 
-	disk, err := getDiskUsage(partition)
-	if err != nil {
-		return err
+	if partition != "" {
+		disk, err := getDiskUsage(partition)
+		if err != nil {
+			return err
+		}
+		metrics = append(metrics, disk)
 	}
 
 	memUse, err := getMemUsage()
@@ -51,9 +63,11 @@ func Pollsinfos(partition, iNetwork string, cpuInfos *cpu.CPUInfos) error {
 		return err
 	}
 
-	metrics := &Metrics{Timestamp: time.Now().String(), Metrics: []*Metric{av, cpu, netStat, disk, memUse}}
+	metrics = append(metrics, memUse)
 
-	b, err := json.Marshal(metrics)
+	metricsList := &Metrics{Timestamp: time.Now().String(), Metrics: metrics}
+
+	b, err := json.Marshal(metricsList)
 	if err != nil {
 		fmt.Println("error:", err)
 	}

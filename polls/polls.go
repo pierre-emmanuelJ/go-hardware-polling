@@ -5,13 +5,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/pierre-emmanuelJ/go-exercises/cpu"
 	"github.com/pierre-emmanuelJ/go-exercises/memory"
+	"github.com/pierre-emmanuelJ/go-exercises/net"
 	part "github.com/pierre-emmanuelJ/go-exercises/partition"
 )
+
+const NetInterfaceDown = 1
+const NetInterfaceUp = 9
+const ValidNetInterface = 10
 
 type Metric struct {
 	Name   string `json:"name"`
@@ -23,7 +29,7 @@ type Metrics struct {
 	Metrics   []*Metric `json:"metrics"`
 }
 
-func Pollsinfos(partition, iNetwork string, cpuInfos *cpu.CPUInfos) error {
+func Pollsinfos(partition, iNetwork string, cpuInfos *cpu.CPUInfos, netInfos *net.NetInfos) error {
 
 	metrics := []*Metric{}
 
@@ -42,7 +48,7 @@ func Pollsinfos(partition, iNetwork string, cpuInfos *cpu.CPUInfos) error {
 	metrics = append(metrics, cpu)
 
 	if iNetwork != "" {
-		netStat, err := getNetStat()
+		netStat, err := getNetStat(iNetwork, netInfos)
 		if err != nil {
 			return err
 		}
@@ -120,9 +126,35 @@ func getCPUPercentage(cpuInfos *cpu.CPUInfos) (*Metric, error) {
 	return &Metric{Name: "Cpu user", Metric: result}, nil
 }
 
-func getNetStat() (*Metric, error) {
-	return &Metric{}, nil
+func getNetStat(iNet string, netInfos *net.NetInfos) (*Metric, error) {
 
+	lineInfos, err := net.GetInterfaceLine(iNet)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(lineInfos) < ValidNetInterface {
+		//TODO implem Error
+		return nil, fmt.Errorf("Invalide interface line infos")
+	}
+
+	down, err := strconv.ParseInt(lineInfos[NetInterfaceDown], 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	up, err := strconv.ParseInt(lineInfos[NetInterfaceUp], 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	resDown := down - netInfos.PrevDown
+	resUp := up - netInfos.PrevUp
+
+	netInfos.PrevDown = down
+	netInfos.PrevUp = up
+
+	return &Metric{Name: fmt.Sprintf("Interface: %s up/down bytes", iNet), Metric: fmt.Sprintf("%v/%v", resUp, resDown)}, nil
 }
 
 func getDiskUsage(partition string) (*Metric, error) {

@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/pierre-emmanuelJ/go-exercises/net"
+
 	"github.com/pierre-emmanuelJ/go-exercises/cpu"
 	"github.com/pierre-emmanuelJ/go-exercises/polls"
 )
@@ -18,9 +20,10 @@ func main() {
 	flag.Parse()
 
 	cpuInfos := &cpu.CPUInfos{}
+	netInfos := &net.NetInfos{}
 	for true {
 		time.Sleep(time.Duration(*interval) * time.Second)
-		err := polls.Pollsinfos(*partition, *iNetwork, cpuInfos)
+		err := polls.Pollsinfos(*partition, *iNetwork, cpuInfos, netInfos)
 		if err != nil {
 			log.Fatal(err)
 		}
